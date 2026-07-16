@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediConnect — Community Health Post Digital Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-900:#0E2545; --blue-700:#143E71; --blue-600:#194F8F; --blue-100:#E0ECF8; --blue-50:#F0F6FC;
+    --teal-600:#0B846B; --teal-500:#11A292; --teal-100:#DBF2ED;
+    --gray-900:#18212B; --gray-800:#2D3742; --gray-700:#4B5662; --gray-500:#79828B; --gray-300:#CED4D9; --gray-200:#E5E8EC; --gray-100:#F3F5F7; --gray-50:#FAFBFC; --white:#FFFFFF;
+    --success:#169668; --success-bg:#E0F5EA; --warning:#B9790F; --warning-bg:#FCEFD6; --error:#C22A2F; --error-bg:#FBE4E4; --info:#2171CE; --info-bg:#E6EEFB;
+    --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.06);
+    --shadow-md: 0 4px 14px rgba(16,24,40,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--gray-50);
+    color:var(--gray-900);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  button{font-family:inherit; cursor:pointer;}
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid rgba(25,79,143,.22);outline-offset:2px;}
+  a{text-decoration:none; color:inherit;}
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--gray-300); border-radius:8px;}
+
+  /* ---------- App shell ---------- */
+  #login-app{display:none;height:100vh;}
+  #login-app.active{display:block;}
+  #app{display:none;height:100vh;}
+  #app.active{display:block;}
+  .shell{display:flex; height:100vh; min-height:0; overflow:hidden;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:248px; flex-shrink:0; background:var(--blue-900); color:#fff;
+    padding:20px 16px; display:flex; flex-direction:column; gap:2px;
+    position:relative; height:100vh; overflow-y:auto;
+  }
+  .sidebar-logo{display:flex; align-items:center; gap:10px; padding:6px 8px 24px 8px;}
+  .logo-mark{width:32px; height:32px; border-radius:8px; background:var(--teal-500); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; flex-shrink:0;}
+  .logo-text{font-weight:600; font-size:15px; line-height:1.2;}
+  .logo-sub{font-size:10.5px; color:rgba(255,255,255,.55); font-weight:400;}
+  .nav-section-label{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:rgba(255,255,255,.4); padding:14px 12px 6px;}
+  .nav-item{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px;
+    color:rgba(255,255,255,.78); font-size:14px; font-weight:500; border:none; background:transparent; width:100%; text-align:left;
+    transition:background .12s ease;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.06); color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,.11); color:#fff; font-weight:600; box-shadow:inset 3px 0 0 var(--teal-500);}
+  .nav-item .ic{width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .sidebar-footer{margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,.1);}
+  .sidebar-user{display:flex; align-items:center; gap:10px; padding:8px;}
+  .avatar{width:34px; height:34px; border-radius:50%; background:var(--blue-600); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:#fff;}
+  .sidebar-user-name{font-size:13px; font-weight:600; color:#fff;}
+  .sidebar-user-role{font-size:11px; color:rgba(255,255,255,.55);}
+
+  /* ---------- Main / Topbar ---------- */
+  .main{flex:1; min-width:0; height:100vh; display:flex; flex-direction:column; overflow-y:auto; background:var(--gray-50); scroll-behavior:auto;}
+  .topbar{
+    height:68px; flex-shrink:0; background:#fff; border-bottom:1px solid var(--gray-200);
+    display:flex; align-items:center; justify-content:space-between; padding:0 28px; position:sticky; top:0; z-index:20;
+  }
+  .search-box{
+    display:flex; align-items:center; gap:8px; background:var(--gray-100); border:1px solid transparent; border-radius:8px;
+    padding:9px 14px; width:340px; color:var(--gray-500); font-size:13px;
+  }
+  .search-box input{border:none; background:transparent; outline:none; font-size:13px; width:100%; color:var(--gray-900); font-family:inherit;}
+  .topbar-right{display:flex; align-items:center; gap:22px;}
+  .icon-btn{width:20px; height:20px; color:var(--gray-500); position:relative;}
+  .badge-dot{position:absolute; top:-3px; right:-3px; width:8px; height:8px; border-radius:50%; background:var(--error); border:2px solid #fff;}
+  .content{padding:28px 32px 42px; width:100%; max-width:1400px; margin:0 auto;}
+
+  /* ---------- Typography helpers ---------- */
+  h1,h2,h3,p{margin:0;}
+  .page-kicker{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-600);margin-bottom:6px;}
+  .page-title{font-size:24px; font-weight:700; letter-spacing:-.02em; color:var(--gray-900);}
+  .page-sub{font-size:14px; color:var(--gray-500); margin-top:4px;}
+  .section-title{font-size:16px; font-weight:600; color:var(--gray-900);}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border-radius:8px; font-size:13.5px; font-weight:600; border:1px solid transparent; white-space:nowrap; transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .15s ease;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--blue-700); color:#fff;}
+  .btn-primary:hover{background:var(--blue-600);}
+  .btn-secondary{background:var(--teal-600); color:#fff;}
+  .btn-secondary:hover{background:var(--teal-500);}
+  .btn-outline{background:#fff; color:var(--gray-700); border-color:var(--gray-300);}
+  .btn-outline:hover{background:var(--gray-50);}
+  .btn-danger{background:var(--error); color:#fff;}
+  .btn-ghost{background:transparent; color:var(--gray-500); padding:8px 10px;}
+  .btn-ghost:hover{color:var(--gray-900); background:var(--gray-100);}
+  .btn-sm{padding:7px 12px; font-size:12.5px;}
+
+  /* ---------- Cards ---------- */
+  .card{background:#fff; border:1px solid var(--gray-200); border-radius:12px; box-shadow:0 1px 2px rgba(16,24,40,.04);}
+  .stat-card{padding:20px; display:flex; flex-direction:column; gap:12px;}
+  .stat-top{display:flex; align-items:center; justify-content:space-between;}
+  .stat-label{font-size:13px; font-weight:500; color:var(--gray-500);}
+  .stat-icon{width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center;}
+  .stat-value{font-size:30px; font-weight:700; color:var(--gray-900); line-height:1;}
+  .stat-delta{font-size:12.5px; font-weight:500;}
+
+  /* ---------- Badges ---------- */
+  .badge{display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:11.5px; font-weight:600;}
+  .badge-success{background:var(--success-bg); color:var(--success);}
+  .badge-warning{background:var(--warning-bg); color:var(--warning);}
+  .badge-error{background:var(--error-bg); color:var(--error);}
+  .badge-info{background:var(--info-bg); color:var(--info);}
+  .badge-dot-mini{width:6px; height:6px; border-radius:50%; background:currentColor;}
+
+  /* ---------- Table ---------- */
+  table{width:100%; border-collapse:collapse;}
+  th{background:#FBFCFD;text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; color:var(--gray-500); padding:0 12px 10px; border-bottom:1px solid var(--gray-200);}
+  td{padding:14px 12px; font-size:13.5px; color:var(--gray-800); border-bottom:1px solid var(--gray-100); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr.clickable-row{cursor:pointer; transition:background .1s;}
+  tr.clickable-row:hover{background:var(--gray-50);}
+  .cell-person{display:flex; align-items:center; gap:10px;}
+  .cell-avatar{width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff;}
+  .cell-name{font-weight:600; color:var(--gray-900); font-size:13.5px;}
+  .cell-sub{font-size:12px; color:var(--gray-500);}
+
+  /* ---------- Form fields ---------- */
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:12.5px; font-weight:600; color:var(--gray-700);}
+  .field input, .field select, .field textarea{
+    border:1px solid var(--gray-300); border-radius:8px; padding:10px 13px; font-size:13.5px; font-family:inherit;
+    outline:none; color:var(--gray-900); background:#fff;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--blue-600); box-shadow:0 0 0 3px var(--blue-100);}
+  .field input::placeholder{color:var(--gray-500);}
+
+  /* ---------- Utility ---------- */
+  .flex{display:flex;}
+  .flex-col{display:flex; flex-direction:column;}
+  .items-center{align-items:center;}
+  .items-start{align-items:flex-start;}
+  .justify-between{justify-content:space-between;}
+  .gap-8{gap:8px;} .gap-10{gap:10px;} .gap-12{gap:12px;} .gap-14{gap:14px;} .gap-16{gap:16px;} .gap-20{gap:20px;} .gap-24{gap:24px;}
+  .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .grid-2{display:grid; grid-template-columns:2fr 1fr; gap:20px;}
+  .mt-24{margin-top:24px;} .mb-16{margin-bottom:16px;}
+  .w-full{width:100%;}
+  .hidden{display:none !important;}
+
+  /* ---------- Screens toggle within an app ---------- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- Login ---------- */
+  .login-shell{display:flex; min-height:100vh;}
+  .login-illustration{
+    width:56%; background:linear-gradient(160deg,var(--blue-700),var(--blue-900));
+    display:flex; flex-direction:column; justify-content:center; padding:64px; color:#fff; position:relative; overflow:hidden;
+  }
+  .login-form-panel{width:44%; display:flex; align-items:center; justify-content:center; padding:48px; background:#fff;}
+  .login-form{width:100%; max-width:380px; display:flex; flex-direction:column; gap:22px;}
+  .illo-card{position:absolute;}
+  .illo-blob{position:absolute; border-radius:50%; background:var(--teal-500); opacity:.22;}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-900); color:#fff;
+    padding:12px 20px; border-radius:8px; font-size:13.5px; font-weight:500; opacity:0; pointer-events:none; transition:all .25s ease; z-index:999;
+    display:flex; align-items:center; gap:10px;
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(16,24,40,.45); display:none; align-items:center; justify-content:center; z-index:200; padding:24px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:#fff; border-radius:14px; width:100%; max-width:520px; max-height:88vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,.2);}
+  .modal-header{display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--gray-200);}
+  .modal-body{padding:24px; display:flex; flex-direction:column; gap:16px;}
+  .modal-footer{padding:16px 24px; border-top:1px solid var(--gray-200); display:flex; justify-content:flex-end; gap:10px;}
+  .close-x{width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--gray-500); border:none; background:transparent;}
+  .close-x:hover{background:var(--gray-100);}
+
+  /* ---------- Professional UI refinements ---------- */
+  .icon-svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .stat-icon .icon-svg{width:18px;height:18px;}
+  .topbar-left{display:flex;align-items:center;gap:16px;min-width:0;}
+  .facility-context{display:flex;align-items:center;gap:9px;padding-left:16px;border-left:1px solid var(--gray-200);white-space:nowrap;}
+  .status-indicator{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px var(--success-bg);}
+  .facility-title{font-size:12.5px;font-weight:600;color:var(--gray-800);}
+  .facility-meta{font-size:10.5px;color:var(--gray-500);margin-top:2px;}
+  .search-shortcut{font-size:10px;color:var(--gray-500);background:#fff;border:1px solid var(--gray-200);border-radius:5px;padding:2px 6px;}
+  .topbar-icon-button{width:36px;height:36px;border:1px solid var(--gray-200);background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gray-600,var(--gray-500));position:relative;}
+  .topbar-icon-button:hover{background:var(--gray-50);color:var(--gray-900);}
+  .action-card{display:flex;align-items:flex-start;gap:12px;text-align:left;background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:16px;min-height:88px;color:var(--gray-900);transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;}
+  .action-card:hover{border-color:#B8C8D9;box-shadow:var(--shadow-md);transform:translateY(-1px);}
+  .action-icon{width:34px;height:34px;border-radius:8px;background:var(--blue-50);color:var(--blue-700);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .action-title{display:block;font-size:13.5px;font-weight:650;line-height:1.25;}
+  .action-sub{display:block;font-size:11.5px;color:var(--gray-500);line-height:1.45;margin-top:4px;}
+  .meta-row{display:flex;align-items:center;gap:7px;color:var(--gray-700);}
+  .meta-row .icon-svg{width:14px;height:14px;color:var(--gray-500);}
+  .data-note{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gray-200);background:#fff;border-radius:999px;padding:6px 10px;font-size:11.5px;color:var(--gray-600,var(--gray-500));}
+  .login-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px;max-width:500px;}
+  .login-trust-item{padding:13px 14px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);}
+  .login-trust-value{font-size:14px;font-weight:700;}
+  .login-trust-label{font-size:10.5px;color:rgba(255,255,255,.65);margin-top:3px;line-height:1.35;}
+  .form-hint{font-size:11.5px;color:var(--gray-500);line-height:1.45;}
+  .modal-overlay[aria-hidden="true"]{display:none;}
+  .modal-overlay[aria-hidden="false"]{display:flex;}
+  @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}.facility-context{display:none}.content{padding:24px}.sidebar{width:220px}}
+  @media (max-width:760px){body{overflow:auto}.login-shell{display:block;min-height:100vh}.login-illustration{display:none}.login-form-panel{width:100%;min-height:100vh;padding:28px}.shell{height:auto;min-height:100vh;overflow:visible}.sidebar{display:none}.main{height:auto;min-height:100vh;overflow:visible}.topbar{padding:0 16px}.search-box{width:min(100%,280px)}.topbar-right>div:last-child{display:none}.content{padding:20px 16px 36px}.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}.flex.justify-between{flex-wrap:wrap;gap:12px}.card{overflow-x:auto}}
+
+  /* ---------- Nav bar icons (simple inline svg strokes) ---------- */
+  svg{display:block;}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- =========================================================
+     LOGIN SCREEN
+========================================================= -->
+<div id="login-app" class="active">
+  <div class="login-shell">
+    <div class="login-illustration">
+      <div class="illo-blob" style="width:340px;height:340px; top:60px; left:120px;"></div>
+      <div class="illo-card card" style="width:260px; padding:20px; top:180px; left:60px; background:#fff;">
+        <div style="width:44px;height:44px;border-radius:10px;background:var(--teal-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin-bottom:14px;">+</div>
+        <div style="height:10px;width:150px;background:var(--gray-200);border-radius:5px;margin-bottom:8px;"></div>
+        <div style="height:10px;width:100px;background:var(--gray-100);border-radius:5px;"></div>
+      </div>
+      <div class="illo-card card" style="width:170px; padding:16px; top:340px; left:330px; background:#fff;">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--error);margin-bottom:10px;"></div>
+        <div style="height:8px;width:100px;background:var(--gray-200);border-radius:4px;"></div>
+      </div>
+      <div style="position:relative; z-index:2; margin-top:280px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+          <div class="logo-mark">+</div>
+          <div>
+            <div class="logo-text" style="font-size:17px;">MediConnect</div>
+            <div class="logo-sub">Community Health Post System</div>
+          </div>
+        </div>
+        <h1 style="font-size:30px;font-weight:700;line-height:1.25;max-width:440px;">Bringing quality healthcare to every village.</h1>
+        <p style="font-size:15px;color:rgba(255,255,255,.8);max-width:420px;margin-top:14px;line-height:1.6;">
+          A unified platform for community health posts across rural Nepal to manage patients, appointments, vaccinations, and medicine stock — even with limited connectivity.
+        </p>
+        <div class="login-trust">
+          <div class="login-trust-item"><div class="login-trust-value">Offline-ready</div><div class="login-trust-label">Records remain available during weak connectivity.</div></div>
+          <div class="login-trust-item"><div class="login-trust-value">Role-based</div><div class="login-trust-label">Access is limited by staff responsibility.</div></div>
+          <div class="login-trust-item"><div class="login-trust-value">Audit-friendly</div><div class="login-trust-label">Key record changes can be reviewed.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="login-form-panel">
+      <form class="login-form" onsubmit="return doLogin(event)">
+        <div class="flex items-center gap-10">
+          <div class="logo-mark" style="background:var(--blue-700);">+</div>
+          <div class="logo-text" style="color:var(--gray-900);">MediConnect</div>
+        </div>
+        <div>
+          <div class="page-kicker">Secure staff access</div>
+          <h2 style="font-size:26px;font-weight:700;letter-spacing:-.02em;">Welcome back</h2>
+          <p class="page-sub" style="margin-top:6px;">Sign in to manage your health post's records, appointments, and inventory.</p>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" placeholder="worker@healthpost.gov.np" value="sunita.karki@healthpost.gov.np" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" placeholder="••••••••••" value="••••••••••" required>
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-8" style="font-size:13px;color:var(--gray-700);">
+            <input type="checkbox" checked style="width:15px;height:15px;"> Remember me
+          </label>
+          <a style="font-size:13px;font-weight:600;color:var(--blue-700);">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary" style="justify-content:center;padding:13px;">Log In</button>
+        <div class="data-note" style="justify-content:center;"><span class="status-indicator"></span> System operational · Last sync 2 minutes ago</div>
+        <p style="font-size:12px;color:var(--gray-500);text-align:center;">Need access? Contact your District Health Office administrator.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     MAIN APP (Dashboard + all screens)
+========================================================= -->
+<div id="app">
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">+</div>
+        <div>
+          <div class="logo-text">MediConnect</div>
+          <div class="logo-sub">Bhaktapur CHP</div>
+        </div>
+      </div>
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" data-screen="dashboard" onclick="goTo('dashboard')">
+        <span class="ic" data-icon="home"></span> Dashboard
+      </button>
+      <button class="nav-item" data-screen="patients" onclick="goTo('patients')">
+        <span class="ic" data-icon="users"></span> Patient Management
+      </button>
+      <button class="nav-item" data-screen="appointments" onclick="goTo('appointments')">
+        <span class="ic" data-icon="calendar"></span> Appointments
+      </button>
+      <button class="nav-item" data-screen="workers" onclick="goTo('workers')">
+        <span class="ic" data-icon="stethoscope"></span> Health Workers
+      </button>
+      <button class="nav-item" data-screen="inventory" onclick="goTo('inventory')">
+        <span class="ic" data-icon="pill"></span> Medicine Inventory
+      </button>
+      <button class="nav-item" data-screen="reports" onclick="goTo('reports')">
+        <span class="ic" data-icon="chart"></span> Reports &amp; Analytics
+      </button>
+      <div class="nav-section-label">Preview</div>
+      <button class="nav-item" data-screen="mobile" onclick="goTo('mobile')">
+        <span class="ic" data-icon="mobile"></span> Mobile View
+      </button>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar">SK</div>
+          <div>
+            <div class="sidebar-user-name">Sunita Karki</div>
+            <div class="sidebar-user-role">Health Post In-Charge</div>
+          </div>
+        </div>
+        <button class="nav-item" style="margin-top:6px;" onclick="logout()">
+          <span class="ic" data-icon="logout"></span> Log Out
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="search-box">
+            <span data-icon="search"></span>
+            <input id="global-search" type="text" placeholder="Search patients, workers, medicines..." onkeydown="handleGlobalSearch(event, this.value)">
+            <span class="search-shortcut">Enter</span>
+          </div>
+          <div class="facility-context">
+            <span class="status-indicator"></span>
+            <div><div class="facility-title">Bhaktapur Community Health Post</div><div class="facility-meta">Online · Last synced 2 min ago</div></div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-button" aria-label="View notifications" onclick="showToast('4 health alerts require review')"><span data-icon="bell"></span><span class="badge-dot"></span></button>
+          <div class="flex items-center gap-10">
+            <div class="avatar" style="width:34px;height:34px;">SK</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;">Sunita Karki</div>
+              <div style="font-size:11px;color:var(--gray-500);">Health Post In-Charge</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content" id="content-area">
+        <!-- SCREENS GET INJECTED HERE BY JS-FREE STATIC BLOCKS BELOW -->
+        <div id="screen-dashboard" class="screen active">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="page-kicker">Daily operations overview</div>
+              <h1 class="page-title">Namaste, Sunita</h1>
+              <p class="page-sub">Bhaktapur Community Health Post — Monday, 13 July 2026</p>
+            </div>
+            <div class="flex gap-12">
+              <button class="btn btn-outline" onclick="showToast('Report exported as PDF')">Export Report</button>
+              <button class="btn btn-primary" onclick="openModal('modal-add-patient')">+ New Patient</button>
+            </div>
+          </div>
+
+          <div class="grid-4 mt-24">
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Total Patients</span>
+                <div class="stat-icon" style="background:var(--blue-100);color:var(--blue-700);" data-icon="users"></div></div>
+              <div class="stat-value" id="total-patients-count">3,842</div>
+              <div class="stat-delta" style="color:var(--success);">▲ 4.2% vs last month</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Today's Appointments</span>
+                <div class="stat-icon" style="background:var(--teal-100);color:var(--teal-600);" data-icon="calendar"></div></div>
+              <div class="stat-value">27</div>
+              <div class="stat-delta" style="color:var(--gray-500);">6 pending check-in</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Emergency Cases</span>
+                <div class="stat-icon" style="background:var(--error-bg);color:var(--error);" data-icon="alert"></div></div>
+              <div class="stat-value">3</div>
+              <div class="stat-delta" style="color:var(--error);">▲ 1 since 8:00 AM</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Vaccination Progress</span>
+                <div class="stat-icon" style="background:var(--info-bg);color:var(--info);" data-icon="syringe"></div></div>
+              <div class="stat-value">78%</div>
+              <div class="stat-delta" style="color:var(--info);">2,994 of 3,842 patients</div>
+            </div>
+          </div>
+
+          <div class="grid-2 mt-24" style="align-items:start;">
+            <div class="card" style="padding:20px;">
+              <div class="flex justify-between items-center mb-16">
+                <span class="section-title">Recent Patient Visits</span>
+                <a style="font-size:13px;font-weight:600;color:var(--blue-700);cursor:pointer;" onclick="goTo('patients')">View all</a>
+              </div>
+              <table>
+                <thead><tr><th>Patient</th><th>Visit Reason</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody id="dash-visits-body"></tbody>
+              </table>
+            </div>
+
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Health Alerts</div>
+              <div class="flex-col gap-16" id="dash-alerts-body"></div>
+            </div>
+          </div>
+
+          <div class="card mt-24" style="padding:20px;">
+            <div class="section-title mb-16">Quick Actions</div>
+            <div class="grid-4">
+              <button class="action-card" onclick="openModal('modal-add-patient')"><span class="action-icon" data-icon="user-plus"></span><span><span class="action-title">Register patient</span><span class="action-sub">Create a new patient record and contact profile.</span></span></button>
+              <button class="action-card" onclick="openAppointmentModal()"><span class="action-icon" data-icon="calendar-plus"></span><span><span class="action-title">Schedule appointment</span><span class="action-sub">Assign a patient, health worker, date, and time.</span></span></button>
+              <button class="action-card" onclick="openModal('modal-add-medicine')"><span class="action-icon" data-icon="package-plus"></span><span><span class="action-title">Add medicine stock</span><span class="action-sub">Record a new batch, quantity, and expiry date.</span></span></button>
+              <button class="action-card" onclick="goTo('reports')"><span class="action-icon" data-icon="chart"></span><span><span class="action-title">Review monthly report</span><span class="action-sub">Inspect patient, diagnosis, and vaccination trends.</span></span></button>
+            </div>
+          </div>
+        </div>
+        <div id="screen-patients" class="screen">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="page-title">Patient Management</h1>
+              <p class="page-sub">3,842 registered patients across Bhaktapur ward catchment</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-patient')">+ Add New Patient</button>
+          </div>
+
+          <div class="card mt-24" style="padding:20px;">
+            <div class="flex justify-between items-center mb-16" style="gap:12px;">
+              <div class="search-box" style="width:320px;background:var(--gray-100);">
+                <span data-icon="search"></span>
+                <input id="patient-search" type="text" placeholder="Search by name, phone, or ID..." oninput="filterPatients(this.value)">
+              </div>
+              <div class="flex gap-10">
+                <select class="field" style="border:1px solid var(--gray-300);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;" onchange="filterPatientsGender(this.value)">
+                  <option value="">All Genders</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+                <select class="field" style="border:1px solid var(--gray-300);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;" onchange="filterPatientsWard(this.value)">
+                  <option value="">All Wards</option>
+                  <option>Ward 2</option>
+                  <option>Ward 3</option>
+                  <option>Ward 4</option>
+                  <option>Ward 5</option>
+                </select>
+                <button class="btn btn-outline btn-sm">⇩ Export</button>
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Patient</th><th>Age / Gender</th><th>Ward</th><th>Phone</th><th>Last Visit</th><th>Status</th><th></th></tr></thead>
+              <tbody id="patients-table-body"></tbody>
+            </table>
+            <div class="flex justify-between items-center" style="margin-top:18px;font-size:12.5px;color:var(--gray-500);">
+              <span id="patient-result-count">Showing 1–10 of 3,842 patients</span>
+              <div class="flex gap-8">
+                <button class="btn btn-outline btn-sm">Previous</button>
+                <button class="btn btn-outline btn-sm">Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="screen-patient-detail" class="screen">
+          <button class="btn btn-ghost" style="padding-left:0;" onclick="goTo('patients')">← Back to Patient Management</button>
+          <div id="patient-detail-body"></div>
+        </div>
+        <div id="screen-appointments" class="screen">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="page-title">Appointment Management</h1>
+              <p class="page-sub">July 2026 — 27 appointments scheduled this week</p>
+            </div>
+            <button class="btn btn-primary" onclick="openAppointmentModal()"><span data-icon="calendar-plus"></span> Schedule Appointment</button>
+          </div>
+
+          <div class="grid-2 mt-24" style="align-items:start;">
+            <div class="card" style="padding:20px;">
+              <div class="flex justify-between items-center mb-16">
+                <span class="section-title">July 2026</span>
+                <div class="flex gap-8">
+                  <button class="btn btn-outline btn-sm">‹</button>
+                  <button class="btn btn-outline btn-sm">›</button>
+                </div>
+              </div>
+              <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
+            </div>
+
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Upcoming Appointments — 13 Jul</div>
+              <div class="flex-col gap-12" id="appt-upcoming-list"></div>
+            </div>
+          </div>
+
+          <div class="card mt-24" style="padding:20px;">
+            <div class="flex justify-between items-center mb-16">
+              <span class="section-title">All Appointments</span>
+              <div class="flex gap-8" id="appt-tabs">
+                <button class="btn btn-sm btn-primary" data-status="all" onclick="filterAppts('all',this)">All</button>
+                <button class="btn btn-sm btn-outline" data-status="Pending" onclick="filterAppts('Pending',this)">Pending</button>
+                <button class="btn btn-sm btn-outline" data-status="Completed" onclick="filterAppts('Completed',this)">Completed</button>
+                <button class="btn btn-sm btn-outline" data-status="Cancelled" onclick="filterAppts('Cancelled',this)">Cancelled</button>
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Patient</th><th>Reason</th><th>Health Worker</th><th>Date &amp; Time</th><th>Status</th></tr></thead>
+              <tbody id="appt-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="screen-workers" class="screen">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="page-title">Health Worker Management</h1>
+              <p class="page-sub">8 staff members serving Bhaktapur catchment area</p>
+            </div>
+            <button class="btn btn-primary" onclick="showToast('Staff form opened')">+ Add Staff Member</button>
+          </div>
+          <div class="grid-3 mt-24" id="workers-grid"></div>
+        </div>
+        <div id="screen-inventory" class="screen">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="page-title">Medicine Inventory</h1>
+              <p class="page-sub">42 medicines tracked — 4 items below reorder threshold</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-medicine')">+ Add Medicine</button>
+          </div>
+
+          <div class="grid-4 mt-24">
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Total Items</span><div class="stat-icon" style="background:var(--blue-100);color:var(--blue-700);" data-icon="pill"></div></div>
+              <div class="stat-value" id="inventory-total-count">42</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Low Stock</span><div class="stat-icon" style="background:var(--warning-bg);color:var(--warning);" data-icon="alert-triangle"></div></div>
+              <div class="stat-value" id="inventory-low-count" style="color:var(--warning);">4</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Expiring in 60 Days</span><div class="stat-icon" style="background:var(--error-bg);color:var(--error);" data-icon="clock"></div></div>
+              <div class="stat-value" id="inventory-expiring-count" style="color:var(--error);">3</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-top"><span class="stat-label">Well Stocked</span><div class="stat-icon" style="background:var(--success-bg);color:var(--success);" data-icon="check-circle"></div></div>
+              <div class="stat-value" id="inventory-ok-count" style="color:var(--success);">35</div>
+            </div>
+          </div>
+
+          <div class="card mt-24" style="padding:20px;">
+            <div class="flex justify-between items-center mb-16">
+              <span class="section-title">Medicine Stock</span>
+              <div class="search-box" style="width:280px;background:var(--gray-100);">
+                <span data-icon="search"></span><input type="text" placeholder="Search medicine..." oninput="filterMedicine(this.value)">
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Medicine</th><th>Category</th><th>Stock Qty</th><th>Expiry Date</th><th>Status</th><th></th></tr></thead>
+              <tbody id="inventory-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="screen-reports" class="screen">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="page-title">Reports &amp; Analytics</h1>
+              <p class="page-sub">Insights for Bhaktapur Community Health Post — January to July 2026</p>
+            </div>
+            <div class="flex gap-12">
+              <select style="border:1px solid var(--gray-300);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;">
+                <option>Last 6 Months</option>
+                <option>Last 12 Months</option>
+                <option>This Year</option>
+              </select>
+              <button class="btn btn-outline" onclick="showToast('Monthly report downloaded as PDF')">⇩ Download Report</button>
+            </div>
+          </div>
+
+          <div class="grid-2 mt-24" style="align-items:start;">
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Patient Growth Trend</div>
+              <svg viewBox="0 0 560 220" width="100%" height="220">
+                <line x1="40" y1="10" x2="40" y2="180" stroke="#E5E8EC" stroke-width="1"/>
+                <line x1="40" y1="180" x2="540" y2="180" stroke="#E5E8EC" stroke-width="1"/>
+                <polyline points="60,140 140,120 220,128 300,95 380,80 460,55 520,40" fill="none" stroke="#143E71" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="60,140 140,120 220,128 300,95 380,80 460,55 520,40 520,180 60,180" fill="#E0ECF8" opacity="0.5" stroke="none"/>
+                <g fill="#143E71">
+                  <circle cx="60" cy="140" r="4"/><circle cx="140" cy="120" r="4"/><circle cx="220" cy="128" r="4"/>
+                  <circle cx="300" cy="95" r="4"/><circle cx="380" cy="80" r="4"/><circle cx="460" cy="55" r="4"/><circle cx="520" cy="40" r="4"/>
+                </g>
+                <g font-size="11" fill="#79828B" font-family="Inter">
+                  <text x="52" y="198">Jan</text><text x="132" y="198">Feb</text><text x="212" y="198">Mar</text>
+                  <text x="292" y="198">Apr</text><text x="372" y="198">May</text><text x="452" y="198">Jun</text><text x="512" y="198" text-anchor="end">Jul</text>
+                </g>
+              </svg>
+              <div class="flex justify-between" style="margin-top:6px;font-size:12.5px;color:var(--gray-500);">
+                <span>New registrations per month</span><span style="color:var(--success);font-weight:600;">▲ 18% growth (6 mo)</span>
+              </div>
+            </div>
+
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Disease Trend — Top Diagnoses</div>
+              <svg viewBox="0 0 560 220" width="100%" height="220">
+                <line x1="40" y1="10" x2="40" y2="180" stroke="#E5E8EC" stroke-width="1"/>
+                <line x1="40" y1="180" x2="540" y2="180" stroke="#E5E8EC" stroke-width="1"/>
+                <g>
+                  <rect x="60" y="80" width="36" height="100" rx="4" fill="#143E71"/>
+                  <rect x="130" y="110" width="36" height="70" rx="4" fill="#11A292"/>
+                  <rect x="200" y="60" width="36" height="120" rx="4" fill="#194F8F"/>
+                  <rect x="270" y="130" width="36" height="50" rx="4" fill="#11A292"/>
+                  <rect x="340" y="95" width="36" height="85" rx="4" fill="#143E71"/>
+                  <rect x="410" y="145" width="36" height="35" rx="4" fill="#CED4D9"/>
+                </g>
+                <g font-size="10.5" fill="#79828B" font-family="Inter" text-anchor="middle">
+                  <text x="78" y="196">Respiratory</text><text x="148" y="196">Diarrhea</text><text x="218" y="196">Fever</text>
+                  <text x="288" y="196">Skin</text><text x="358" y="196">Antenatal</text><text x="428" y="196">Injury</text>
+                </g>
+              </svg>
+              <div style="font-size:12.5px;color:var(--gray-500);margin-top:6px;">Reported cases by category, past 30 days</div>
+            </div>
+          </div>
+
+          <div class="grid-2 mt-24" style="align-items:start;">
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Vaccination Statistics</div>
+              <div class="flex gap-24" style="flex-wrap:wrap;">
+                <div id="vax-ring-bcg"></div>
+                <div id="vax-ring-dpt"></div>
+                <div id="vax-ring-measles"></div>
+                <div id="vax-ring-polio"></div>
+              </div>
+            </div>
+            <div class="card" style="padding:20px;">
+              <div class="section-title mb-16">Monthly Report Summary</div>
+              <table>
+                <thead><tr><th>Month</th><th>New Patients</th><th>Visits</th><th>Vaccinations</th><th>Emergencies</th></tr></thead>
+                <tbody id="monthly-report-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="screen-mobile" class="screen">
+          <div>
+            <h1 class="page-title">Mobile Field Worker View</h1>
+            <p class="page-sub">Optimized for health workers using tablets/phones in the field — tap the bottom nav to explore</p>
+          </div>
+          <div class="flex" style="justify-content:center;margin-top:28px;">
+            <div style="width:375px;background:#000;border-radius:40px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
+              <div style="background:var(--gray-50);border-radius:28px;overflow:hidden;height:720px;display:flex;flex-direction:column;position:relative;">
+                <!-- status bar -->
+                <div style="background:var(--blue-900);color:#fff;font-size:11px;padding:10px 20px 6px;display:flex;justify-content:space-between;">
+                  <span>9:41</span><span>MediConnect</span><span>🔋 100%</span>
+                </div>
+                <!-- mobile topbar -->
+                <div style="background:var(--blue-900);color:#fff;padding:6px 18px 16px;">
+                  <div style="font-size:18px;font-weight:700;">Namaste, Sunita 👋</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.7);">Bhaktapur CHP · 13 Jul 2026</div>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:16px;" id="mobile-content-area"></div>
+                <!-- bottom nav -->
+                <div style="background:#fff;border-top:1px solid var(--gray-200);display:flex;justify-content:space-around;padding:10px 0 16px;">
+                  <button class="btn-ghost" style="flex-direction:column;display:flex;align-items:center;gap:2px;font-size:10.5px;border:none;background:none;" data-mtab="home" onclick="mobileTab('home',this)"><span data-icon="home"></span><span>Home</span></button>
+                  <button class="btn-ghost" style="flex-direction:column;display:flex;align-items:center;gap:2px;font-size:10.5px;border:none;background:none;" data-mtab="patients" onclick="mobileTab('patients',this)"><span data-icon="users"></span><span>Patients</span></button>
+                  <button class="btn-ghost" style="flex-direction:column;display:flex;align-items:center;gap:2px;font-size:10.5px;border:none;background:none;" data-mtab="appts" onclick="mobileTab('appts',this)"><span data-icon="calendar"></span><span>Visits</span></button>
+                  <button class="btn-ghost" style="flex-direction:column;display:flex;align-items:center;gap:2px;font-size:10.5px;border:none;background:none;" data-mtab="more" onclick="mobileTab('more',this)"><span data-icon="menu"></span><span>More</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+<div class="modal-overlay" id="modal-add-patient" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="add-patient-title">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="section-title" id="add-patient-title">Register New Patient</span>
+      <button class="close-x" onclick="closeModal('modal-add-patient')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label for="new-patient-name">Full Name</label><input id="new-patient-name" placeholder="e.g. Maya Tamang" autocomplete="off"></div>
+        <div class="field"><label for="new-patient-age">Age</label><input id="new-patient-age" placeholder="e.g. 29" type="number" min="0" max="120"></div>
+      </div>
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Gender</label>
+          <select id="new-patient-gender"><option>Female</option><option>Male</option><option>Other</option></select>
+        </div>
+        <div class="field"><label>Ward</label>
+          <select id="new-patient-ward"><option>Ward 2</option><option>Ward 3</option><option>Ward 4</option><option>Ward 5</option></select>
+        </div>
+      </div>
+      <div class="field"><label for="new-patient-phone">Phone Number</label><input id="new-patient-phone" placeholder="98XXXXXXXX" inputmode="numeric" maxlength="10"></div>
+      <div class="field"><label for="new-patient-guardian">Guardian / Emergency Contact</label><input id="new-patient-guardian" placeholder="Name and phone number"></div>
+      <div class="field"><label for="new-patient-notes">Notes</label><textarea id="new-patient-notes" rows="3" placeholder="Known allergies, chronic conditions, etc."></textarea><span class="form-hint">Avoid entering sensitive details that are not required for care.</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-patient')">Cancel</button>
+      <button class="btn btn-primary" onclick="registerPatient()">Register Patient</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-medicine" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="add-medicine-title">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="section-title" id="add-medicine-title">Add Medicine to Inventory</span>
+      <button class="close-x" onclick="closeModal('modal-add-medicine')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label for="new-medicine-name">Medicine Name</label><input id="new-medicine-name" placeholder="e.g. Amoxicillin 250mg"></div>
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Category</label>
+          <select id="new-medicine-category"><option>Antibiotic</option><option>Analgesic</option><option>Vaccine</option><option>Supplement</option><option>IV Fluid</option></select>
+        </div>
+        <div class="field"><label for="new-medicine-stock">Stock Quantity</label><input id="new-medicine-stock" placeholder="e.g. 500" type="number" min="0"></div>
+      </div>
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label for="new-medicine-unit">Unit</label><input id="new-medicine-unit" placeholder="e.g. tablets, bottles, vials"></div>
+        <div class="field"><label for="new-medicine-expiry">Expiry Date</label><input id="new-medicine-expiry" type="date" value="2027-03-01"></div>
+      </div>
+      <div class="field"><label for="new-medicine-threshold">Reorder Threshold</label><input id="new-medicine-threshold" placeholder="e.g. 50" type="number" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-medicine')">Cancel</button>
+      <button class="btn btn-primary" onclick="addMedicine()">Add Medicine</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-appointment" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="add-appointment-title">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="section-title" id="add-appointment-title">Schedule Appointment</span>
+      <button class="close-x" onclick="closeModal('modal-add-appointment')" aria-label="Close appointment form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label for="appt-patient">Patient</label><select id="appt-patient"></select></div>
+      <div class="field"><label for="appt-reason">Visit reason</label><input id="appt-reason" placeholder="e.g. Antenatal follow-up"></div>
+      <div class="field"><label for="appt-worker">Health worker</label><select id="appt-worker"></select></div>
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label for="appt-date">Date</label><input id="appt-date" type="date" value="2026-07-14"></div>
+        <div class="field"><label for="appt-time">Time</label><input id="appt-time" type="time" value="10:00"></div>
+      </div>
+      <span class="form-hint">The appointment will be added to the prototype schedule as a pending visit.</span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-appointment')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAppointment()">Schedule Appointment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+  'calendar-plus':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M12 14v4M10 16h4"/>',
+  stethoscope:'<path d="M5 3v5a5 5 0 0 0 10 0V3"/><path d="M8 3H3M17 3h-5"/><path d="M15 13a4 4 0 1 0 4 4v-3"/><circle cx="19" cy="12" r="2"/>',
+  pill:'<path d="m10.5 20.5 10-10a5 5 0 0 0-7-7l-10 10a5 5 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 5-7"/>',
+  mobile:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  alert:'<path d="M10.3 3.7 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  'alert-triangle':'<path d="M10.3 3.7 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  syringe:'<path d="m18 2 4 4-4 4-4-4 4-4Z"/><path d="m14 6-9.5 9.5M3 14l7 7M5 16l-3 3M2 22l2-2"/><path d="m8 12 4 4"/>',
+  'user-plus':'<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6M16 11h6"/>',
+  'package-plus':'<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.5 7.5 4 7.5-4M12 11.5V21M16 14v4M14 16h4"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  'map-pin':'<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/>'
+};
+function icon(name,size=18){return `<svg class="icon-svg" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||ICONS.alert}</svg>`;}
+function hydrateIcons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=icon(el.dataset.icon);});}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function doLogin(e){
+  e.preventDefault();
+  document.getElementById('login-app').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  goTo('dashboard');
+  showToast('Welcome back, Sunita');
+  return false;
+}
+function logout(){
+  document.querySelectorAll('.modal-overlay').forEach(m=>closeModal(m.id));
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login-app').classList.add('active');
+  document.querySelector('#login-app input[type="email"]')?.focus();
+}
+function scrollAppToTop(){
+  const main = document.querySelector('#app .main');
+  if(main) main.scrollTo({top:0,left:0,behavior:'auto'});
+}
+function goTo(screenName){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const navBtn = document.querySelector('.nav-item[data-screen="'+screenName+'"]');
+  if(navBtn) navBtn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  const scr = document.getElementById('screen-'+screenName);
+  if(scr){
+    scr.classList.add('active');
+    requestAnimationFrame(scrollAppToTop);
+  }
+}
+function openModal(id){
+  const modal = document.getElementById(id);
+  if(!modal) return;
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden','false');
+  setTimeout(()=>modal.querySelector('input,select,textarea')?.focus(),0);
+}
+function closeModal(id){
+  const modal = document.getElementById(id);
+  if(!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden','true');
+}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click', (e)=>{ if(e.target===m) closeModal(m.id); });
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-overlay.active').forEach(m=>closeModal(m.id));
+});
+document.querySelectorAll('button:not([type])').forEach(btn=>btn.type='button');
+
+function handleGlobalSearch(event,value){
+  if(event.key!=='Enter') return;
+  const q=value.trim().toLowerCase();
+  if(!q){showToast('Type a patient, worker, or medicine name');return;}
+  const patient=PATIENTS.find(p=>p.name.toLowerCase().includes(q)||p.phone.includes(q));
+  if(patient){goTo('patients');searchFilter=value;document.getElementById('patient-search').value=value;applyPatientFilters();showToast(`Showing patient matches for “${value}”`);return;}
+  const medicine=MEDICINES.find(m=>m.name.toLowerCase().includes(q));
+  if(medicine){goTo('inventory');filterMedicine(value);showToast(`Showing medicine matches for “${value}”`);return;}
+  const worker=WORKERS.find(w=>w.name.toLowerCase().includes(q)||w.role.toLowerCase().includes(q));
+  if(worker){goTo('workers');showToast(`Found ${worker.name} — ${worker.role}`);return;}
+  showToast(`No records found for “${value}”`);
+}
+function registerPatient(){
+  const name=document.getElementById('new-patient-name').value.trim();
+  const age=Number(document.getElementById('new-patient-age').value);
+  const phone=document.getElementById('new-patient-phone').value.trim();
+  if(!name||!Number.isFinite(age)||age<0||age>120){showToast('Enter a valid patient name and age');return;}
+  if(phone && !/^9\d{9}$/.test(phone)){showToast('Phone number must contain 10 digits and begin with 9');return;}
+  PATIENTS.unshift({id:Math.max(...PATIENTS.map(p=>p.id))+1,name,age,gender:document.getElementById('new-patient-gender').value,ward:document.getElementById('new-patient-ward').value,phone:phone||'Not provided',lastVisit:'Not visited',status:'Active',visits:[],vaccinations:[],prescriptions:[]});
+  totalPatientCount+=1;
+  renderPatients();renderDashboard();updatePatientCounters();populateAppointmentOptions();
+  ['new-patient-name','new-patient-age','new-patient-phone','new-patient-guardian','new-patient-notes'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-add-patient');showToast(`${name} registered successfully`);
+}
+function addMedicine(){
+  const name=document.getElementById('new-medicine-name').value.trim();
+  const stock=Number(document.getElementById('new-medicine-stock').value);
+  const unit=document.getElementById('new-medicine-unit').value.trim();
+  const threshold=Number(document.getElementById('new-medicine-threshold').value||0);
+  const expiryRaw=document.getElementById('new-medicine-expiry').value;
+  if(!name||!Number.isFinite(stock)||stock<0||!unit||!expiryRaw){showToast('Complete all required medicine fields');return;}
+  const expiry=new Date(expiryRaw+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,' ');
+  const newStatus=stock<=threshold?'low':'ok';
+  MEDICINES.unshift({name,category:document.getElementById('new-medicine-category').value,stock,unit,expiry,status:newStatus,threshold});
+  inventorySummary.total+=1;
+  inventorySummary[newStatus==='low'?'low':'ok']+=1;
+  renderInventory();updateInventoryCounters();
+  ['new-medicine-name','new-medicine-stock','new-medicine-unit','new-medicine-threshold'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-add-medicine');showToast(`${name} added to inventory`);
+}
+function restockMedicine(name){
+  const item=MEDICINES.find(m=>m.name===name);if(!item)return;
+  const wasLow=item.status==='low';
+  item.stock+=50;item.status='ok';
+  if(wasLow){inventorySummary.low=Math.max(0,inventorySummary.low-1);inventorySummary.ok+=1;}
+  renderInventory();updateInventoryCounters();showToast(`${name} restocked by 50 ${item.unit}`);
+}
+function updatePatientCounters(){
+  const display=totalPatientCount.toLocaleString('en-US');
+  const total=document.getElementById('total-patients-count');if(total)total.textContent=display;
+  const result=document.getElementById('patient-result-count');if(result)result.textContent=`Showing ${Math.min(PATIENTS.length,10)} demo records of ${display} registered patients`;
+}
+function updateInventoryCounters(){
+  document.getElementById('inventory-total-count').textContent=inventorySummary.total;
+  document.getElementById('inventory-low-count').textContent=inventorySummary.low;
+  document.getElementById('inventory-expiring-count').textContent=inventorySummary.expiring;
+  document.getElementById('inventory-ok-count').textContent=inventorySummary.ok;
+}
+function populateAppointmentOptions(selectedPatient=''){
+  const patientSelect=document.getElementById('appt-patient');
+  const workerSelect=document.getElementById('appt-worker');
+  patientSelect.innerHTML=PATIENTS.map(p=>`<option ${p.name===selectedPatient?'selected':''}>${p.name}</option>`).join('');
+  workerSelect.innerHTML=WORKERS.map(w=>`<option>${w.name}</option>`).join('');
+}
+function openAppointmentModal(patientName=''){
+  populateAppointmentOptions(patientName);
+  document.getElementById('appt-reason').value='';
+  openModal('modal-add-appointment');
+}
+function saveAppointment(){
+  const patient=document.getElementById('appt-patient').value;
+  const reason=document.getElementById('appt-reason').value.trim();
+  const worker=document.getElementById('appt-worker').value;
+  const date=document.getElementById('appt-date').value;
+  const time=document.getElementById('appt-time').value;
+  if(!patient||!reason||!date||!time){showToast('Complete all appointment fields');return;}
+  const d=new Date(`${date}T${time}`);
+  const datePart=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}).replace(/^0/,'');
+  const timePart=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  APPOINTMENTS.unshift({patient,reason,worker,datetime:`${datePart}, ${timePart}`,status:'Pending'});
+  renderAppointments();closeModal('modal-add-appointment');goTo('appointments');showToast(`Appointment scheduled for ${patient}`);
+}
+let totalPatientCount=3842;
+const inventorySummary={total:42,low:4,expiring:3,ok:35};
+
+/* =========================================================
+   DATA MODEL
+========================================================= */
+const AVATAR_COLORS = ['#143E71','#11A292','#194F8F','#0B846B','#B9790F','#194F8F'];
+function initials(name){ return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+function avatarColor(seed){ return AVATAR_COLORS[seed % AVATAR_COLORS.length]; }
+
+const PATIENTS = [
+  {id:1, name:'Ramesh Thapa', age:34, gender:'Male', ward:'Ward 3', phone:'9841022310', lastVisit:'13 Jul 2026', status:'Active',
+    visits:[{date:'13 Jul 2026', reason:'Routine Checkup', worker:'Dr. Anish Bhattarai', notes:'BP normal, advised diet control.'},
+            {date:'02 Mar 2026', reason:'Seasonal Flu', worker:'Kabita Rana, ANM', notes:'Prescribed rest and paracetamol.'}],
+    vaccinations:[{vaccine:'Typhoid', date:'11 Jan 2024', status:'Completed'},{vaccine:'Tetanus Booster', date:'22 Aug 2025', status:'Completed'}],
+    prescriptions:[{date:'13 Jul 2026', medicine:'Amlodipine 5mg', dosage:'1 tablet daily', duration:'30 days'},
+                   {date:'02 Mar 2026', medicine:'Paracetamol 500mg', dosage:'1 tablet, 3x/day', duration:'5 days'}]},
+  {id:2, name:'Sita Gurung', age:27, gender:'Female', ward:'Ward 2', phone:'9812234567', lastVisit:'13 Jul 2026', status:'Active',
+    visits:[{date:'13 Jul 2026', reason:'Fever & Cough', worker:'Kabita Rana, ANM', notes:'Suspected viral infection, monitor for 3 days.'}],
+    vaccinations:[{vaccine:'COVID-19 Booster', date:'14 Feb 2025', status:'Completed'}],
+    prescriptions:[{date:'13 Jul 2026', medicine:'Cetirizine 10mg', dosage:'1 tablet at night', duration:'5 days'}]},
+  {id:3, name:'Bishnu Lama', age:24, gender:'Female', ward:'Ward 4', phone:'9860112233', lastVisit:'13 Jul 2026', status:'Active',
+    visits:[{date:'13 Jul 2026', reason:'Antenatal Visit (28 wks)', worker:'Dr. Anish Bhattarai', notes:'Fetal heart rate normal, iron supplements continued.'}],
+    vaccinations:[{vaccine:'Tetanus Toxoid (TT2)', date:'01 Jul 2026', status:'Completed'}],
+    prescriptions:[{date:'13 Jul 2026', medicine:'Iron Folic Acid', dosage:'1 tablet daily', duration:'60 days'}]},
+  {id:4, name:'Kamal Rai', age:2, gender:'Male', ward:'Ward 3', phone:'9847765432', lastVisit:'12 Jul 2026', status:'Active',
+    visits:[{date:'12 Jul 2026', reason:'Routine Vaccination', worker:'Sarita Lama, CHV', notes:'No adverse reaction observed.'}],
+    vaccinations:[{vaccine:'DPT Booster', date:'12 Jul 2026', status:'Completed'},{vaccine:'Measles-Rubella', date:'10 Jan 2026', status:'Completed'}],
+    prescriptions:[]},
+  {id:5, name:'Gita Shrestha', age:45, gender:'Female', ward:'Ward 5', phone:'9801122998', lastVisit:'12 Jul 2026', status:'Referred',
+    visits:[{date:'12 Jul 2026', reason:'Emergency — Fall Injury', worker:'Dr. Anish Bhattarai', notes:'Suspected fracture, referred to Bhaktapur Hospital.'}],
+    vaccinations:[], prescriptions:[{date:'12 Jul 2026', medicine:'Ibuprofen 400mg', dosage:'1 tablet, 2x/day', duration:'3 days'}]},
+  {id:6, name:'Him Bahadur Thapa', age:61, gender:'Male', ward:'Ward 2', phone:'9855012345', lastVisit:'10 Jul 2026', status:'Active',
+    visits:[{date:'10 Jul 2026', reason:'Diabetes Follow-up', worker:'Dr. Anish Bhattarai', notes:'Blood sugar improving, continue medication.'}],
+    vaccinations:[{vaccine:'Influenza', date:'05 Nov 2025', status:'Completed'}],
+    prescriptions:[{date:'10 Jul 2026', medicine:'Metformin 500mg', dosage:'1 tablet, 2x/day', duration:'30 days'}]},
+  {id:7, name:'Maya Tamang', age:31, gender:'Female', ward:'Ward 4', phone:'9813344556', lastVisit:'09 Jul 2026', status:'Active',
+    visits:[{date:'09 Jul 2026', reason:'Postnatal Checkup', worker:'Kabita Rana, ANM', notes:'Mother and infant healthy.'}],
+    vaccinations:[{vaccine:'Hepatitis B (Infant)', date:'09 Jul 2026', status:'Completed'}],
+    prescriptions:[]},
+  {id:8, name:'Suresh Adhikari', age:52, gender:'Male', ward:'Ward 3', phone:'9840099887', lastVisit:'08 Jul 2026', status:'Active',
+    visits:[{date:'08 Jul 2026', reason:'Hypertension Review', worker:'Dr. Anish Bhattarai', notes:'BP 138/89, medication adjusted.'}],
+    vaccinations:[], prescriptions:[{date:'08 Jul 2026', medicine:'Amlodipine 5mg', dosage:'1 tablet daily', duration:'30 days'}]},
+  {id:9, name:'Anita Poudel', age:19, gender:'Female', ward:'Ward 5', phone:'9827788990', lastVisit:'07 Jul 2026', status:'Active',
+    visits:[{date:'07 Jul 2026', reason:'Skin Allergy', worker:'Kabita Rana, ANM', notes:'Prescribed antihistamine cream.'}],
+    vaccinations:[{vaccine:'HPV Dose 2', date:'07 Jul 2026', status:'Completed'}], prescriptions:[{date:'07 Jul 2026', medicine:'Hydrocortisone Cream', dosage:'Apply 2x/day', duration:'7 days'}]},
+  {id:10, name:'Dipak Shrestha', age:8, gender:'Male', ward:'Ward 2', phone:'9845567123', lastVisit:'05 Jul 2026', status:'Active',
+    visits:[{date:'05 Jul 2026', reason:'Diarrhea', worker:'Sarita Lama, CHV', notes:'ORS and zinc supplement given.'}],
+    vaccinations:[{vaccine:'Vitamin A Supplement', date:'05 Jul 2026', status:'Completed'}], prescriptions:[{date:'05 Jul 2026', medicine:'ORS + Zinc', dosage:'As directed', duration:'5 days'}]}
+];
+
+const WORKERS = [
+  {name:'Dr. Anish Bhattarai', role:'Medical Officer', area:'All Wards (Clinical Lead)', phone:'9851023456', availability:'Mon–Sat, 9 AM – 4 PM', status:'On Duty'},
+  {name:'Sunita Karki', role:'Health Post In-Charge', area:'Administration', phone:'9841022310', availability:'Mon–Fri, 8 AM – 5 PM', status:'On Duty'},
+  {name:'Kabita Rana', role:'Auxiliary Nurse Midwife (ANM)', area:'Ward 2, Ward 3', phone:'9812234567', availability:'Mon–Sat, 9 AM – 3 PM', status:'On Duty'},
+  {name:'Prakash Magar', role:'Health Assistant', area:'Ward 4, Ward 5', phone:'9860112233', availability:'Mon–Fri, 9 AM – 4 PM', status:'Off Duty'},
+  {name:'Sarita Lama', role:'Community Health Volunteer', area:'Ward 3 (Field Visits)', phone:'9847765432', availability:'Tue, Thu, Sat — Field Days', status:'On Field'},
+  {name:'Bimala Karki', role:'Auxiliary Health Worker', area:'Ward 2', phone:'9801122998', availability:'Mon–Sat, 9 AM – 3 PM', status:'On Duty'},
+  {name:'Nabin Poudel', role:'Lab Technician', area:'Diagnostics', phone:'9855012345', availability:'Mon–Fri, 10 AM – 4 PM', status:'Off Duty'},
+  {name:'Rita Maharjan', role:'Community Health Volunteer', area:'Ward 5 (Field Visits)', phone:'9813344556', availability:'Mon, Wed, Fri — Field Days', status:'On Field'}
+];
+
+const MEDICINES = [
+  {name:'Paracetamol 500mg', category:'Analgesic', stock:12, unit:'tablets', expiry:'20 Sep 2026', status:'low'},
+  {name:'Amoxicillin 250mg', category:'Antibiotic', stock:340, unit:'capsules', expiry:'15 Nov 2026', status:'ok'},
+  {name:'ORS Sachets', category:'Rehydration', stock:8, unit:'sachets', expiry:'02 Aug 2026', status:'low'},
+  {name:'Iron Folic Acid Tablets', category:'Supplement', stock:520, unit:'tablets', expiry:'10 Jan 2027', status:'ok'},
+  {name:'Vitamin A Capsules', category:'Supplement', stock:210, unit:'capsules', expiry:'28 Feb 2027', status:'ok'},
+  {name:'Cotrimoxazole Syrup', category:'Antibiotic', stock:15, unit:'bottles', expiry:'05 Aug 2026', status:'expiring'},
+  {name:'Measles-Rubella Vaccine', category:'Vaccine', stock:60, unit:'vials', expiry:'12 Sep 2026', status:'expiring'},
+  {name:'DPT Vaccine', category:'Vaccine', stock:75, unit:'vials', expiry:'30 Dec 2026', status:'ok'},
+  {name:'Normal Saline IV', category:'IV Fluid', stock:140, unit:'bottles', expiry:'18 Mar 2027', status:'ok'},
+  {name:'Ibuprofen 400mg', category:'Analgesic', stock:6, unit:'tablets', expiry:'22 Aug 2026', status:'low'},
+  {name:'Metformin 500mg', category:'Chronic Care', stock:190, unit:'tablets', expiry:'14 Apr 2027', status:'ok'},
+  {name:'Amlodipine 5mg', category:'Chronic Care', stock:160, unit:'tablets', expiry:'09 May 2027', status:'ok'}
+];
+
+const APPOINTMENTS = [
+  {patient:'Ramesh Thapa', reason:'Routine Checkup', worker:'Dr. Anish Bhattarai', datetime:'13 Jul, 9:30 AM', status:'Completed'},
+  {patient:'Sita Gurung', reason:'Fever & Cough', worker:'Kabita Rana, ANM', datetime:'13 Jul, 10:00 AM', status:'Completed'},
+  {patient:'Bishnu Lama', reason:'Antenatal Visit', worker:'Dr. Anish Bhattarai', datetime:'13 Jul, 11:15 AM', status:'Pending'},
+  {patient:'Sanjay Karki', reason:'General Consultation', worker:'Kabita Rana, ANM', datetime:'13 Jul, 1:00 PM', status:'Pending'},
+  {patient:'Krishna Bahadur', reason:'Wound Dressing', worker:'Prakash Magar', datetime:'13 Jul, 2:30 PM', status:'Pending'},
+  {patient:'Radha Devi', reason:'Diabetes Follow-up', worker:'Dr. Anish Bhattarai', datetime:'12 Jul, 3:00 PM', status:'Completed'},
+  {patient:'Suman Lama', reason:'Vaccination', worker:'Sarita Lama, CHV', datetime:'11 Jul, 10:30 AM', status:'Cancelled'},
+  {patient:'Purnima Rai', reason:'Antenatal Visit', worker:'Kabita Rana, ANM', datetime:'11 Jul, 9:00 AM', status:'Completed'}
+];
+
+/* =========================================================
+   RENDER: DASHBOARD
+========================================================= */
+function statusBadge(status){
+  const map = {
+    'Completed':'success','Pending':'warning','Cancelled':'error','Referred':'error',
+    'Active':'success','In Progress':'warning','On Duty':'success','On Field':'info','Off Duty':'warning'
+  };
+  return `<span class="badge badge-${map[status]||'info'}"><span class="badge-dot-mini"></span>${status}</span>`;
+}
+function renderDashboard(){
+  const visits = PATIENTS.filter(p=>p.visits.length).slice(0,5);
+  document.getElementById('dash-visits-body').innerHTML = visits.map(p=>`
+    <tr class="clickable-row" onclick="openPatient(${p.id})">
+      <td><div class="cell-person"><div class="cell-avatar" style="background:${avatarColor(p.id)}">${initials(p.name)}</div><span class="cell-name">${p.name}</span></div></td>
+      <td>${p.visits[0]?p.visits[0].reason:'—'}</td>
+      <td>${p.lastVisit}</td>
+      <td>${statusBadge(p.visits[0] && p.visits[0].reason.includes('Antenatal') ? 'In Progress' : (p.status==='Referred'?'Referred':'Completed'))}</td>
+    </tr>`).join('');
+
+  const alerts = [
+    ['Low stock: Paracetamol 500mg','Only 12 units left — reorder soon','error'],
+    ['Vaccination due: 14 children','DPT booster dose scheduled this week','warning'],
+    ['Diarrhea cases rising','5 cases reported in Ward 4 this week','warning'],
+    ['Cold chain check completed','Vaccine fridge temperature normal','success']
+  ];
+  document.getElementById('dash-alerts-body').innerHTML = alerts.map(([t,d,k])=>`
+    <div class="flex gap-12" style="align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--gray-100);">
+      <div style="width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:var(--${k==='error'?'error':k==='warning'?'warning':'success'});"></div>
+      <div><div style="font-weight:600;font-size:13px;">${t}</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px;">${d}</div></div>
+    </div>`).join('');
+}
+
+/* =========================================================
+   RENDER: PATIENTS LIST + FILTER
+========================================================= */
+function renderPatients(list){
+  const data = list || PATIENTS;
+  document.getElementById('patients-table-body').innerHTML = data.map(p=>`
+    <tr class="clickable-row" onclick="openPatient(${p.id})">
+      <td><div class="cell-person"><div class="cell-avatar" style="background:${avatarColor(p.id)}">${initials(p.name)}</div><span class="cell-name">${p.name}</span></div></td>
+      <td>${p.age} / ${p.gender}</td>
+      <td>${p.ward}</td>
+      <td>${p.phone}</td>
+      <td>${p.lastVisit}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td><span style="color:var(--blue-700);font-weight:600;font-size:12.5px;">View →</span></td>
+    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--gray-500);padding:24px;">No patients match your search.</td></tr>`;
+}
+let genderFilter='', wardFilter='', searchFilter='';
+function applyPatientFilters(){
+  const filtered = PATIENTS.filter(p=>
+    (!genderFilter || p.gender===genderFilter) &&
+    (!wardFilter || p.ward===wardFilter) &&
+    (!searchFilter || p.name.toLowerCase().includes(searchFilter.toLowerCase()) || p.phone.includes(searchFilter))
+  );
+  renderPatients(filtered);
+}
+function filterPatients(v){ searchFilter=v; applyPatientFilters(); }
+function filterPatientsGender(v){ genderFilter=v; applyPatientFilters(); }
+function filterPatientsWard(v){ wardFilter=v; applyPatientFilters(); }
+
+/* =========================================================
+   RENDER: PATIENT DETAIL
+========================================================= */
+function openPatient(id){
+  const p = PATIENTS.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('patient-detail-body').innerHTML = `
+    <div class="card mt-24" style="padding:24px;">
+      <div class="flex justify-between items-start">
+        <div class="flex gap-16 items-center">
+          <div class="cell-avatar" style="width:56px;height:56px;font-size:18px;background:${avatarColor(p.id)}">${initials(p.name)}</div>
+          <div>
+            <div style="font-size:20px;font-weight:700;">${p.name}</div>
+            <div style="font-size:13px;color:var(--gray-500);margin-top:2px;">${p.age} yrs, ${p.gender} · ${p.ward} · ${p.phone}</div>
+            <div style="margin-top:8px;">${statusBadge(p.status)}</div>
+          </div>
+        </div>
+        <div class="flex gap-10">
+          <button class="btn btn-outline btn-sm" onclick="showToast('Patient summary prepared for printing')"><span data-icon="chart"></span> Print Summary</button>
+          <button class="btn btn-primary btn-sm" onclick="openAppointmentModal('${p.name}')"><span data-icon="calendar-plus"></span> Schedule Visit</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-24" style="align-items:start;">
+      <div class="flex-col gap-24">
+        <div class="card" style="padding:20px;">
+          <div class="section-title mb-16">Previous Visits</div>
+          <div class="flex-col gap-14">
+            ${p.visits.length ? p.visits.map(v=>`
+              <div style="border-bottom:1px solid var(--gray-100);padding-bottom:14px;">
+                <div class="flex justify-between"><span style="font-weight:600;font-size:13.5px;">${v.reason}</span><span style="font-size:12px;color:var(--gray-500);">${v.date}</span></div>
+                <div style="font-size:12.5px;color:var(--gray-500);margin-top:4px;">Attended by ${v.worker}</div>
+                <div style="font-size:12.5px;color:var(--gray-700);margin-top:6px;">${v.notes}</div>
+              </div>`).join('') : '<div style="color:var(--gray-500);font-size:13px;">No previous visits recorded.</div>'}
+          </div>
+        </div>
+
+        <div class="card" style="padding:20px;">
+          <div class="section-title mb-16">Prescription History</div>
+          <table>
+            <thead><tr><th>Date</th><th>Medicine</th><th>Dosage</th><th>Duration</th></tr></thead>
+            <tbody>
+              ${p.prescriptions.length ? p.prescriptions.map(rx=>`<tr><td>${rx.date}</td><td style="font-weight:600;">${rx.medicine}</td><td>${rx.dosage}</td><td>${rx.duration}</td></tr>`).join('') : '<tr><td colspan="4" style="color:var(--gray-500);">No prescriptions on record.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="padding:20px;">
+        <div class="section-title mb-16">Vaccination Records</div>
+        <div class="flex-col gap-12">
+          ${p.vaccinations.length ? p.vaccinations.map(v=>`
+            <div class="flex justify-between items-center" style="border-bottom:1px solid var(--gray-100);padding-bottom:10px;">
+              <div><div style="font-weight:600;font-size:13px;">${v.vaccine}</div><div style="font-size:12px;color:var(--gray-500);">${v.date}</div></div>
+              ${statusBadge(v.status)}
+            </div>`).join('') : '<div style="color:var(--gray-500);font-size:13px;">No vaccination records.</div>'}
+        </div>
+        <div class="section-title mt-24 mb-16" style="margin-top:24px;">Medical History Summary</div>
+        <div style="font-size:13px;color:var(--gray-700);line-height:1.7;">
+          Chronic conditions: ${p.age>50?'Hypertension monitoring':'None recorded'}.<br>
+          Known allergies: None recorded.<br>
+          Blood group: Not on file.
+        </div>
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector('.nav-item[data-screen="patients"]').classList.add('active');
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.getElementById('screen-patient-detail').classList.add('active');
+  hydrateIcons(document.getElementById('patient-detail-body'));
+  requestAnimationFrame(scrollAppToTop);
+}
+
+/* =========================================================
+   RENDER: APPOINTMENTS
+========================================================= */
+function renderAppointments(list){
+  const data = list || APPOINTMENTS;
+  document.getElementById('appt-table-body').innerHTML = data.map(a=>`
+    <tr>
+      <td><div class="cell-person"><div class="cell-avatar" style="background:${avatarColor(a.patient.length)}">${initials(a.patient)}</div><span class="cell-name">${a.patient}</span></div></td>
+      <td>${a.reason}</td>
+      <td>${a.worker}</td>
+      <td>${a.datetime}</td>
+      <td>${statusBadge(a.status)}</td>
+    </tr>`).join('');
+
+  document.getElementById('appt-upcoming-list').innerHTML = APPOINTMENTS.filter(a=>a.datetime.startsWith('13 Jul')).map(a=>`
+    <div class="flex justify-between items-center" style="padding-bottom:12px;border-bottom:1px solid var(--gray-100);">
+      <div class="flex gap-10 items-center">
+        <div class="cell-avatar" style="background:${avatarColor(a.patient.length)}">${initials(a.patient)}</div>
+        <div><div style="font-weight:600;font-size:13px;">${a.patient}</div><div style="font-size:12px;color:var(--gray-500);">${a.reason} · ${a.datetime.split(', ')[1]}</div></div>
+      </div>
+      ${statusBadge(a.status)}
+    </div>`).join('');
+}
+function filterAppts(status, btn){
+  document.querySelectorAll('#appt-tabs button').forEach(b=>{b.classList.remove('btn-primary'); b.classList.add('btn-outline');});
+  btn.classList.remove('btn-outline'); btn.classList.add('btn-primary');
+  renderAppointments(status==='all' ? APPOINTMENTS : APPOINTMENTS.filter(a=>a.status===status));
+}
+function renderCalendar(){
+  const days = ['S','M','T','W','T','F','S'];
+  let html = days.map(d=>`<div style="text-align:center;font-size:11px;color:var(--gray-500);font-weight:600;padding-bottom:4px;">${d}</div>`).join('');
+  const busyDays = {13:4, 14:2, 15:1, 20:3, 21:2, 27:5};
+  for(let i=1;i<=3;i++) html += `<div></div>`; // July 1, 2026 is Wednesday
+  for(let d=1; d<=31; d++){
+    const busy = busyDays[d];
+    const isToday = d===13;
+    html += `<div style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;
+      background:${isToday?'var(--blue-700)':'var(--gray-50)'}; color:${isToday?'#fff':'var(--gray-900)'}; font-weight:${isToday?700:500}; cursor:pointer; border:1px solid ${isToday?'var(--blue-700)':'var(--gray-100)'};">
+      ${d}${busy?`<span style="width:4px;height:4px;border-radius:50%;background:${isToday?'#fff':'var(--teal-500)'};margin-top:2px;"></span>`:''}
+    </div>`;
+  }
+  document.getElementById('calendar-grid').innerHTML = html;
+}
+
+/* =========================================================
+   RENDER: WORKERS
+========================================================= */
+function renderWorkers(){
+  document.getElementById('workers-grid').innerHTML = WORKERS.map((w,i)=>`
+    <div class="card" style="padding:20px;">
+      <div class="flex justify-between items-start">
+        <div class="flex gap-12 items-center">
+          <div class="cell-avatar" style="width:44px;height:44px;font-size:14px;background:${avatarColor(i)}">${initials(w.name)}</div>
+          <div><div style="font-weight:700;font-size:14px;">${w.name}</div><div style="font-size:12.5px;color:var(--gray-500);">${w.role}</div></div>
+        </div>
+        ${statusBadge(w.status)}
+      </div>
+      <div style="margin-top:16px;font-size:12.5px;color:var(--gray-700);display:flex;flex-direction:column;gap:8px;">
+        <div class="meta-row">${icon('map-pin',14)}<span>${w.area}</span></div>
+        <div class="meta-row">${icon('clock',14)}<span>${w.availability}</span></div>
+        <div class="meta-row">${icon('phone',14)}<span>${w.phone}</span></div>
+      </div>
+      <button class="btn btn-outline btn-sm w-full mt-24" style="margin-top:16px;justify-content:center;" onclick="showToast('Opening profile for ${w.name}')">View Full Profile</button>
+    </div>`).join('');
+}
+
+/* =========================================================
+   RENDER: INVENTORY
+========================================================= */
+function invBadge(status){
+  if(status==='low') return '<span class="badge badge-error"><span class="badge-dot-mini"></span>Low Stock</span>';
+  if(status==='expiring') return '<span class="badge badge-warning"><span class="badge-dot-mini"></span>Expiring Soon</span>';
+  return '<span class="badge badge-success"><span class="badge-dot-mini"></span>In Stock</span>';
+}
+function renderInventory(list){
+  const data = list || MEDICINES;
+  document.getElementById('inventory-table-body').innerHTML = data.map(m=>`
+    <tr>
+      <td style="font-weight:600;">${m.name}</td>
+      <td>${m.category}</td>
+      <td style="${m.status==='low'?'color:var(--error);font-weight:700;':''}">${m.stock} ${m.unit}</td>
+      <td>${m.expiry}</td>
+      <td>${invBadge(m.status)}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="restockMedicine('${m.name.replace(/'/g,"\'")}')">Restock</button></td>
+    </tr>`).join('');
+}
+function filterMedicine(v){
+  renderInventory(MEDICINES.filter(m=>m.name.toLowerCase().includes(v.toLowerCase())));
+}
+
+/* =========================================================
+   RENDER: REPORTS
+========================================================= */
+function ring(id,label,pct,color){
+  const r=34, c=2*Math.PI*r;
+  const el = document.getElementById(id);
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <svg width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="${r}" stroke="#E5E8EC" stroke-width="8" fill="none"/>
+        <circle cx="45" cy="45" r="${r}" stroke="${color}" stroke-width="8" fill="none"
+          stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}" stroke-linecap="round" transform="rotate(-90 45 45)"/>
+        <text x="45" y="50" text-anchor="middle" font-size="16" font-weight="700" font-family="Inter" fill="#1B2127">${pct}%</text>
+      </svg>
+      <div style="font-size:12px;color:var(--gray-500);text-align:center;max-width:90px;">${label}</div>
+    </div>`;
+}
+function renderReports(){
+  ring('vax-ring-bcg','BCG (Newborn)',96,'#143E71');
+  ring('vax-ring-dpt','DPT (3-dose)',82,'#11A292');
+  ring('vax-ring-measles','Measles-Rubella',78,'#194F8F');
+  ring('vax-ring-polio','Polio (OPV)',88,'#0B846B');
+
+  const rows = [
+    ['February 2026','198','642','310','7'],
+    ['March 2026','215','701','355','5'],
+    ['April 2026','189','655','298','9'],
+    ['May 2026','241','722','388','6'],
+    ['June 2026','267','780','410','8'],
+    ['July 2026 (MTD)','142','410','225','3']
+  ];
+  document.getElementById('monthly-report-body').innerHTML = rows.map(r=>`
+    <tr>${r.map((c,i)=>`<td style="${i===0?'font-weight:600;':''}">${c}</td>`).join('')}</tr>`).join('');
+}
+
+/* =========================================================
+   RENDER: MOBILE VIEW
+========================================================= */
+function mobileTab(tab, btn){
+  document.querySelectorAll('#screen-mobile [data-mtab]').forEach(b=>b.style.color='var(--gray-500)');
+  if(btn) btn.style.color='var(--blue-700)';
+  const area = document.getElementById('mobile-content-area');
+  if(tab==='home'){
+    area.innerHTML = `
+      <div class="grid-2" style="grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--gray-500);">Total Patients</div><div style="font-size:20px;font-weight:700;">3,842</div></div>
+        <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--gray-500);">Today's Visits</div><div style="font-size:20px;font-weight:700;">27</div></div>
+        <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--gray-500);">Emergencies</div><div style="font-size:20px;font-weight:700;color:var(--error);">3</div></div>
+        <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--gray-500);">Vaccination</div><div style="font-size:20px;font-weight:700;color:var(--info);">78%</div></div>
+      </div>
+      <div class="section-title" style="margin-top:18px;font-size:14px;">Health Alerts</div>
+      <div class="card" style="padding:12px;margin-top:8px;display:flex;flex-direction:column;gap:10px;">
+        <div class="meta-row" style="font-size:12.5px;">${icon('alert-triangle',14)}<span><b>Low stock:</b> Paracetamol 500mg</span></div>
+        <div class="meta-row" style="font-size:12.5px;">${icon('syringe',14)}<span><b>14 children</b> due for DPT booster</span></div>
+      </div>
+      <button class="btn btn-primary w-full" style="justify-content:center;margin-top:16px;" onclick="showToast('Opening quick patient form')">+ Register Patient</button>`;
+  } else if(tab==='patients'){
+    area.innerHTML = `<div class="search-box" style="width:100%;background:var(--gray-100);margin-bottom:12px;"><span>⌕</span><input placeholder="Search patients..."></div>` +
+      PATIENTS.slice(0,6).map(p=>`
+      <div class="card" style="padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;" onclick="showToast('${p.name} profile opened')">
+        <div class="cell-avatar" style="background:${avatarColor(p.id)};width:36px;height:36px;">${initials(p.name)}</div>
+        <div><div style="font-weight:600;font-size:13px;">${p.name}</div><div style="font-size:11.5px;color:var(--gray-500);">${p.age} yrs · ${p.ward}</div></div>
+      </div>`).join('');
+  } else if(tab==='appts'){
+    area.innerHTML = APPOINTMENTS.slice(0,6).map(a=>`
+      <div class="card" style="padding:12px;margin-bottom:8px;">
+        <div class="flex justify-between items-center"><span style="font-weight:600;font-size:13px;">${a.patient}</span>${statusBadge(a.status)}</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">${a.reason} · ${a.datetime}</div>
+      </div>`).join('');
+  } else {
+    area.innerHTML = `
+      <div class="card meta-row" style="padding:14px;margin-bottom:8px;" onclick="showToast('Opening Medicine Inventory')">${icon('pill',16)}<span>Medicine Inventory</span></div>
+      <div class="card meta-row" style="padding:14px;margin-bottom:8px;" onclick="showToast('Opening Health Workers')">${icon('stethoscope',16)}<span>Health Workers</span></div>
+      <div class="card meta-row" style="padding:14px;margin-bottom:8px;" onclick="showToast('Opening Reports')">${icon('chart',16)}<span>Reports &amp; Analytics</span></div>
+      <div class="card meta-row" style="padding:14px;margin-bottom:8px;" onclick="logout()">${icon('logout',16)}<span>Log Out</span></div>`;
+  }
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+function initApp(){
+  renderDashboard();
+  renderPatients();
+  renderAppointments();
+  renderCalendar();
+  renderWorkers();
+  renderInventory();
+  renderReports();
+  updatePatientCounters();
+  updateInventoryCounters();
+  populateAppointmentOptions();
+  mobileTab('home', null);
+  hydrateIcons();
+}
+initApp();
+</script>
+</body>
+</html>
